@@ -1,0 +1,29 @@
+{
+  "name": "tricentis-tosca-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@types/node": "20.x",
+    "@types/react": "18.x",
+    "@types/react-dom": "18.x",
+    "lucide-react": "^0.344.0",
+    "next": "14.x",
+    "react": "18.x",
+    "react-dom": "18.x",
+    "tailwindcss": "3.x",
+    "typescript": "5.x"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^8.x",
+    "eslint-config-next": "14.x",
+    "postcss": "^8.5.6"
+  }
+}
