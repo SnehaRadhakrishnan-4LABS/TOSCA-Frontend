@@ -1,9 +1,9 @@
 import React from 'react';
 import { Heart, Code, Shield, Globe } from 'lucide-react';
-
+ 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+ 
   return (
     <footer className="glassmorphism border-t border-white/10 mt-8">
       <div className="px-6 py-6">
@@ -14,7 +14,7 @@ const Footer = () => {
               Secured by Tricentis TOSCA
             </span>
           </div>
-
+ 
           <div className="flex items-center space-x-6">
             <a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors">
               Documentation
@@ -29,7 +29,7 @@ const Footer = () => {
               Privacy Policy
             </a>
           </div>
-
+ 
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Code size={16} className="text-gray-500" />
@@ -45,7 +45,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
+ 
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 text-center">
           <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
             <span>© {currentYear} Tricentis TOSCA Dashboard. All rights reserved.</span>
@@ -60,5 +60,5 @@ const Footer = () => {
     </footer>
   );
 };
-
+ 
 export default Footer;

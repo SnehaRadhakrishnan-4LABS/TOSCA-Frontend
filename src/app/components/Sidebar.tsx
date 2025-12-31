@@ -29,8 +29,7 @@ const Sidebar = () => {
         router.push('/');
         break;
       case 'e2e':
-        alert('Navigating to E2E Testing page... (Page will be implemented separately)');
-        // router.push('/e2e'); // Uncomment when page exists
+        router.push('/e2e'); // Now properly navigates to E2E page
         break;
       case 'rtb':
         alert('Navigating to RTB Testing page... (Page will be implemented separately)');
