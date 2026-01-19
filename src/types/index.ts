@@ -53,3 +53,57 @@ export interface Project {
   status: 'active' | 'archived' | 'maintenance';
   folderStructure: FolderItem[];
 }
+
+// Add these to existing types
+
+export interface ProjectDetails extends Project {
+  createdDate: string;
+  teamMembers: string[];
+  technologies: string[];
+  dependencies: string[];
+  recentActivity: Activity[];
+  testCoverage: TestCoverage;
+  executionHistory: ExecutionHistory[];
+  requirements: Requirement[];
+}
+
+export interface Activity {
+  id: string;
+  user: string;
+  action: string;
+  timestamp: string;
+  icon: string;
+}
+
+export interface TestCoverage {
+  totalRequirements: number;
+  coveredRequirements: number;
+  coveragePercentage: number;
+  byModule: ModuleCoverage[];
+}
+
+export interface ModuleCoverage {
+  name: string;
+  covered: number;
+  total: number;
+  percentage: number;
+}
+
+export interface ExecutionHistory {
+  id: string;
+  date: string;
+  totalTests: number;
+  passed: number;
+  failed: number;
+  duration: number;
+  status: 'passed' | 'failed' | 'partial';
+}
+
+export interface Requirement {
+  id: string;
+  name: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'implemented' | 'in_progress' | 'pending';
+  testCases: string[];
+}

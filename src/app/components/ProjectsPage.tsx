@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Search, Filter, ChevronRight, ChevronDown, Folder, 
   FolderOpen, FileText, Play, CheckCircle, XCircle, 
   Clock, Archive, Wrench, Activity, Users, Calendar,
-  Download, Share2, Star, MoreVertical, Trash2, Copy
+  Download, Share2, Star, MoreVertical, Trash2, Copy,
+  Eye, PlayCircle
 } from 'lucide-react';
 import { projects, Project, FolderItem } from '@/data/projectsData';
 
@@ -41,6 +43,7 @@ const ToastNotification = ({ message, type = 'info', onClose }: {
 };
 
 const ProjectsPage = () => {
+  const router = useRouter();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,6 +53,10 @@ const ProjectsPage = () => {
 
   const showNotification = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
     setNotification({ message, type });
+  };
+
+  const navigateToProjectDetails = (projectId: string) => {
+    router.push(`/projects/${projectId}`);
   };
 
   const filteredProjects = projects.filter(project => {
@@ -152,7 +159,6 @@ const ProjectsPage = () => {
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
-    // Expand the first level folders by default
     const newExpanded = new Set(['root']);
     project.folderStructure.forEach(folder => {
       newExpanded.add(folder.id);
@@ -184,7 +190,6 @@ const ProjectsPage = () => {
       return;
     }
     
-    // Create a JSON file with project data
     const projectData = JSON.stringify(selectedProject, null, 2);
     const blob = new Blob([projectData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -205,7 +210,6 @@ const ProjectsPage = () => {
       return;
     }
     
-    // Create export data
     const exportData = {
       projectName: selectedProject.name,
       exportDate: new Date().toISOString(),
@@ -216,7 +220,6 @@ const ProjectsPage = () => {
       summary: `Export of ${selectedProject.name} completed on ${new Date().toLocaleDateString()}`
     };
     
-    // Create and download CSV
     const csvContent = [
       ['Project Name', selectedProject.name],
       ['Export Date', new Date().toLocaleString()],
@@ -230,7 +233,6 @@ const ProjectsPage = () => {
       ['Folder Structure Summary:', ''],
     ];
     
-    // Add folder structure to CSV
     const addToCSV = (items: any[], depth = 0) => {
       items.forEach(item => {
         const indent = '  '.repeat(depth);
@@ -277,7 +279,6 @@ const ProjectsPage = () => {
         .then(() => showNotification('Project shared successfully!', 'success'))
         .catch(error => showNotification('Error sharing project', 'error'));
     } else {
-      // Fallback for browsers that don't support Web Share API
       const shareText = `${selectedProject.name}\n\nDescription: ${selectedProject.description}\n\nTest Cases: ${selectedProject.testCases}\nTest Suites: ${selectedProject.testSuites}\nExecution Runs: ${selectedProject.executionRuns}\nSuccess Rate: ${selectedProject.successRate}%\nOwner: ${selectedProject.owner}`;
       navigator.clipboard.writeText(shareText)
         .then(() => {
@@ -298,7 +299,6 @@ const ProjectsPage = () => {
     
     showNotification(`Starting test execution for "${selectedProject.name}"...`, 'info');
     
-    // Simulate progress
     setTestProgress(0);
     const interval = setInterval(() => {
       setTestProgress(prev => {
@@ -333,7 +333,6 @@ const ProjectsPage = () => {
       };
       
       showNotification(`Project cloned successfully as "${newProjectName}"!`, 'success');
-      // In a real app, you would add this to your projects array
     }
   };
 
@@ -349,7 +348,6 @@ const ProjectsPage = () => {
     if (confirm(confirmMessage)) {
       const newStatus = selectedProject.status === 'archived' ? 'active' : 'archived';
       showNotification(`Project "${selectedProject.name}" has been ${action}d!`, 'success');
-      // In a real app, you would update the project status in your data
     }
   };
 
@@ -362,7 +360,6 @@ const ProjectsPage = () => {
     if (confirm(`Are you sure you want to delete "${selectedProject.name}"? This action cannot be undone.`)) {
       showNotification(`Project "${selectedProject.name}" has been deleted!`, 'success');
       setSelectedProject(null);
-      // In a real app, you would remove the project from your data
     }
   };
 
@@ -378,7 +375,6 @@ const ProjectsPage = () => {
           <div className="text-xs text-gray-500">Click folders to expand/collapse</div>
         </div>
         
-        {/* TOSCA Workspace Header */}
         <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center">
             <FolderOpen size={18} className="text-blue-500 mr-2" />
@@ -404,7 +400,6 @@ const ProjectsPage = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Notification Toast */}
       {notification && (
         <ToastNotification
           message={notification.message}
@@ -413,7 +408,6 @@ const ProjectsPage = () => {
         />
       )}
       
-      {/* Header */}
       <div className="glassmorphism rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -435,7 +429,6 @@ const ProjectsPage = () => {
           </div>
         </div>
 
-        {/* Search and Filter */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -486,7 +479,6 @@ const ProjectsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Projects List */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glassmorphism rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
@@ -502,12 +494,12 @@ const ProjectsPage = () => {
               {filteredProjects.map((project) => (
                 <div
                   key={project.id}
-                  onClick={() => handleProjectClick(project)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
                     selectedProject?.id === project.id
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700'
                       : 'bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
                   }`}
+                  onClick={() => handleProjectClick(project)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3">
@@ -545,10 +537,26 @@ const ProjectsPage = () => {
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToProjectDetails(project.id);
+                        }}
+                        className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                        title="View Project Details"
+                      >
+                        <Eye size={18} className="text-blue-500" />
+                      </button>
+                      <button 
+                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Star size={18} className="text-gray-500" />
                       </button>
-                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">
+                      <button 
+                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MoreVertical size={18} className="text-gray-500" />
                       </button>
                     </div>
@@ -586,7 +594,6 @@ const ProjectsPage = () => {
           </div>
         </div>
 
-        {/* Folder Structure Panel */}
         <div className="lg:col-span-1">
           <div className="glassmorphism rounded-2xl p-6 h-full">
             <div className="flex items-center justify-between mb-6">
@@ -596,18 +603,19 @@ const ProjectsPage = () => {
               {selectedProject && (
                 <div className="flex space-x-2">
                   <button 
+                    onClick={() => navigateToProjectDetails(selectedProject.id)}
+                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center"
+                    title="View Full Details"
+                  >
+                    <Eye size={18} className="text-gray-600 dark:text-gray-400 mr-1" />
+                    <span className="text-sm">Details</span>
+                  </button>
+                  <button 
                     onClick={handleDownload}
                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     title="Download Project"
                   >
                     <Download size={18} className="text-gray-600 dark:text-gray-400" />
-                  </button>
-                  <button 
-                    onClick={handleShare}
-                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    title="Share Project"
-                  >
-                    <Share2 size={18} className="text-gray-600 dark:text-gray-400" />
                   </button>
                 </div>
               )}
@@ -629,12 +637,20 @@ const ProjectsPage = () => {
 
                 {renderToscaCommanderStructure()}
 
+                <button 
+                  onClick={() => navigateToProjectDetails(selectedProject.id)}
+                  className="w-full p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center font-medium"
+                >
+                  <Eye size={18} className="mr-2" />
+                  View Full Project Details
+                </button>
+
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={handleRunTests}
                     className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-center flex items-center justify-center"
                   >
-                    <Play size={18} className="mr-2" />
+                    <PlayCircle size={18} className="mr-2" />
                     Run Tests
                   </button>
                   <button 
@@ -646,7 +662,6 @@ const ProjectsPage = () => {
                   </button>
                 </div>
                 
-                {/* Progress Bar */}
                 {testProgress !== null && (
                   <div className="mt-4">
                     <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
@@ -662,7 +677,6 @@ const ProjectsPage = () => {
                   </div>
                 )}
                 
-                {/* Additional Actions */}
                 <div className="grid grid-cols-3 gap-3 mt-4">
                   <button 
                     onClick={handleCloneProject}
@@ -695,6 +709,9 @@ const ProjectsPage = () => {
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
                   Click on a project from the list to view its TOSCA Commander folder structure
+                </p>
+                <p className="text-sm text-gray-500 mt-4">
+                  Click the <Eye className="inline w-4 h-4 mx-1" /> icon to view detailed project analytics
                 </p>
               </div>
             )}
