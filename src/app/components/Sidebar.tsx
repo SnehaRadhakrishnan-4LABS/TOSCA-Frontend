@@ -11,7 +11,8 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Home
+  Home,
+  Folder
 } from 'lucide-react';
 import { SidebarItem } from '@/types';
 import { useRouter } from 'next/navigation';
@@ -28,13 +29,14 @@ const Sidebar = () => {
       case 'dashboard':
         router.push('/');
         break;
+      case 'projects':
+        router.push('/projects');
+        break;
       case 'e2e':
         alert('Navigating to E2E Testing page... (Page will be implemented separately)');
-        // router.push('/e2e'); // Uncomment when page exists
         break;
       case 'rtb':
         alert('Navigating to RTB Testing page... (Page will be implemented separately)');
-        // router.push('/rtb'); // Uncomment when page exists
         break;
       case 'analytics':
         alert('Navigating to Analytics page...');
@@ -55,6 +57,7 @@ const Sidebar = () => {
 
   const sidebarItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { id: 'projects', label: 'Projects', icon: <Folder size={20} /> },
     { id: 'e2e', label: 'E2E Testing', icon: <Zap size={20} /> },
     { id: 'rtb', label: 'RTB Testing', icon: <Cpu size={20} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={20} /> },

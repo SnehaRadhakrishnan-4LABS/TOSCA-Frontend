@@ -30,3 +30,26 @@ export interface SidebarItem {
   icon: React.ReactNode;
   active?: boolean;
 }
+
+export interface FolderItem {
+  id: string;
+  name: string;
+  type: 'folder' | 'testcase' | 'testsuite' | 'module' | 'requirement';
+  children?: FolderItem[];
+  lastModified?: string;
+  status?: 'passed' | 'failed' | 'not_run' | 'in_progress';
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  lastModified: string;
+  testCases: number;
+  testSuites: number;
+  executionRuns: number;
+  successRate: number;
+  owner: string;
+  status: 'active' | 'archived' | 'maintenance';
+  folderStructure: FolderItem[];
+}
