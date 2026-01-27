@@ -10,6 +10,7 @@ export interface Project {
   owner: string;
   status: 'active' | 'archived' | 'maintenance';
   folderStructure: FolderItem[];
+  
 }
 
 export interface FolderItem {
