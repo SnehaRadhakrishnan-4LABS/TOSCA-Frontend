@@ -22,38 +22,39 @@ const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('dashboard');
   const router = useRouter();
 
-  const handleNavigation = (id: string) => {
-    setActiveItem(id);
-    
-    switch(id) {
-      case 'dashboard':
-        router.push('/');
-        break;
-      case 'projects':
-        router.push('/projects');
-        break;
-      case 'e2e':
-        alert('Navigating to E2E Testing page... (Page will be implemented separately)');
-        break;
-      case 'rtb':
-        alert('Navigating to RTB Testing page... (Page will be implemented separately)');
-        break;
-      case 'analytics':
-        alert('Navigating to Analytics page...');
-        break;
-      case 'reports':
-        alert('Navigating to Reports page...');
-        break;
-      case 'team':
-        alert('Navigating to Team page...');
-        break;
-      case 'settings':
-        alert('Navigating to Settings page...');
-        break;
-      default:
-        router.push('/');
-    }
-  };
+  // Update the handleNavigation function
+const handleNavigation = (id: string) => {
+  setActiveItem(id);
+  
+  switch(id) {
+    case 'dashboard':
+      router.push('/dashboard'); // Changed from '/'
+      break;
+    case 'projects':
+      router.push('/projects');
+      break;
+    case 'e2e':
+      alert('Navigating to E2E Testing page... (Page will be implemented separately)');
+      break;
+    case 'rtb':
+      alert('Navigating to RTB Testing page... (Page will be implemented separately)');
+      break;
+    case 'analytics':
+      alert('Navigating to Analytics page...');
+      break;
+    case 'reports':
+      alert('Navigating to Reports page...');
+      break;
+    case 'team':
+      alert('Navigating to Team page...');
+      break;
+    case 'settings':
+      alert('Navigating to Settings page...');
+      break;
+    default:
+      router.push('/dashboard'); // Changed from '/'
+  }
+};
 
   const sidebarItems: SidebarItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },

@@ -2,13 +2,13 @@
 
 import ProtectedRoute from '../components/ProtectedRoute';
 import MainLayout from '../components/MainLayout';
-import ProjectsPage from '../components/ProjectsPage';
+import MainDashboard from '../components/MainDashboard';
 
-export default function Projects() {
+export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <MainLayout>
-        <ProjectsPage />
+        <MainDashboard />
       </MainLayout>
     </ProtectedRoute>
   );
