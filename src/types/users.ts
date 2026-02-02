@@ -1,12 +1,21 @@
-export type UserRole = 'admin' | 'developer' | 'tester';
+export type UserRole = 'admin' | 'developer' | 'tester' | 'organization';
 
 export interface User {
-  id: string;
+  // id: string;
+  // email: string;
+  // name: string;
+  // role: UserRole;
+  // companyId?: string;
+  // createdAt: Date;
+  // isActive: boolean;
+   id: string;
   email: string;
   name: string;
   role: UserRole;
-  companyId?: string;
-  createdAt: Date;
+  password?: string; // Only for creation/update, not for display
+  companyId: string;
+  organization?: string;
+  createdAt: Date | string;
   isActive: boolean;
 }
 
@@ -26,4 +35,20 @@ export interface LoginCredentials {
 export interface RegisterCredentials extends LoginCredentials {
   name: string;
   companyName: string;
+}
+
+export interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  organization?: string;
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  role?: UserRole;
+  organization?: string;
+  isActive?: boolean;
 }

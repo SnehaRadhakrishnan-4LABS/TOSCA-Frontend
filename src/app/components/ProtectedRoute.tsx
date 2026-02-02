@@ -14,15 +14,27 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
+  // useEffect(() => {
+  //   if (!isLoading && !isAuthenticated) {
+  //     router.push('/login');
+  //   }
     
-    if (!isLoading && user && allowedRoles && !allowedRoles.includes(user.role)) {
+  //   if (!isLoading && user && allowedRoles && !allowedRoles.includes(user.role)) {
+  //     router.push('/dashboard');
+  //   }
+  // }, [user, isLoading, isAuthenticated, router, allowedRoles]);
+  useEffect(() => {
+  if (!isLoading && !isAuthenticated) {
+    router.push('/login');
+  }
+  
+  if (!isLoading && user && allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect non-admin users trying to access admin panel to dashboard
+    if (window.location.pathname.startsWith('/admin')) {
       router.push('/dashboard');
     }
-  }, [user, isLoading, isAuthenticated, router, allowedRoles]);
+  }
+}, [user, isLoading, isAuthenticated, router, allowedRoles]);
 
   if (isLoading) {
     return (

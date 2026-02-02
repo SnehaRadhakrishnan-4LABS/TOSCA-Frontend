@@ -1,7 +1,8 @@
+// app/components/AuthProvider.tsx
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, UserRole } from '../../types/users'; // Changed from '@/types/user'
+import { User, UserRole, CreateUserData, UpdateUserData, Company } from '../../types/users';
 
 interface AuthContextType {
   user: User | null;
@@ -10,25 +11,64 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, companyName: string) => Promise<{ success: boolean; message: string }>;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  
+  // Admin functions
+  getUsers: () => User[];
+  createUser: (userData: CreateUserData) => Promise<{ success: boolean; message: string }>;
+  updateUser: (userId: string, updates: UpdateUserData) => Promise<{ success: boolean; message: string }>;
+  deleteUser: (userId: string) => Promise<{ success: boolean; message: string }>;
+  toggleUserStatus: (userId: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initial admin user for demo (in production, this will come from backend)
-const initialUsers = [
+// Initial users for demo
+const initialUsers: User[] = [
   {
     id: 'admin-1',
     email: 'admin@example.com',
     name: 'System Admin',
-    role: 'admin' as UserRole,
-    password: 'admin123', // In production, this should be hashed
+    role: 'admin',
+    password: 'admin123',
     companyId: 'company-1',
     createdAt: new Date(),
+    isActive: true,
+  },
+  {
+    id: 'dev-1',
+    email: 'john@example.com',
+    name: 'John Developer',
+    role: 'developer',
+    password: 'password123',
+    companyId: 'company-1',
+    createdAt: new Date('2024-01-15'),
+    isActive: true,
+  },
+  {
+    id: 'tester-1',
+    email: 'jane@example.com',
+    name: 'Jane Tester',
+    role: 'tester',
+    password: 'password123',
+    companyId: 'company-1',
+    createdAt: new Date('2024-02-01'),
+    isActive: true,
+  },
+  {
+    id: 'org-1',
+    email: 'contact@acme.com',
+    name: 'Acme Corporation',
+    role: 'organization',
+    password: 'password123',
+    companyId: 'company-1',
+    organization: 'Acme Corporation',
+    createdAt: new Date('2024-02-15'),
     isActive: true,
   }
 ];
 
-const initialCompanies = [
+const initialCompanies: Company[] = [
   {
     id: 'company-1',
     name: 'Demo Corporation',
@@ -41,8 +81,8 @@ const initialCompanies = [
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [users, setUsers] = useState<any[]>(initialUsers);
-  const [companies, setCompanies] = useState<any[]>(initialCompanies);
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
 
   useEffect(() => {
     // Check if user is logged in from localStorage
@@ -52,6 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsLoading(false);
   }, []);
+
+  const isAdmin = user?.role === 'admin';
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -103,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Create new admin user and company
-    const newCompany = {
+    const newCompany: Company = {
       id: `company-${Date.now()}`,
       name: companyName,
       adminId: `user-${Date.now()}`,
@@ -111,12 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isActive: true,
     };
     
-    const newUser = {
+    const newUser: User = {
       id: `user-${Date.now()}`,
       email,
       name,
-      role: 'admin' as UserRole,
-      password, // In production, hash this
+      role: 'admin',
+      password,
       companyId: newCompany.id,
       createdAt: new Date(),
       isActive: true,
@@ -134,26 +176,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true, message: 'Registration successful! Welcome admin.' };
   };
 
-  // Expose user management functions for admin
-  const addUser = (userData: any) => {
-    setUsers([...users, userData]);
+  // Admin functions
+  const getUsers = (): User[] => {
+    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
   };
 
-  const updateUser = (userId: string, updates: Partial<any>) => {
-    setUsers(users.map(u => u.id === userId ? { ...u, ...updates } : u));
+  const createUser = async (userData: CreateUserData): Promise<{ success: boolean; message: string }> => {
+    if (!isAdmin) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    // Check if email already exists
+    if (users.some(u => u.email === userData.email)) {
+      return { success: false, message: 'Email already exists' };
+    }
+
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      password: userData.password,
+      companyId: user?.companyId || 'company-1',
+      organization: userData.organization,
+      createdAt: new Date(),
+      isActive: true,
+    };
+
+    setUsers([...users, newUser]);
+    return { success: true, message: 'User created successfully' };
   };
 
-  const deleteUser = (userId: string) => {
-    setUsers(users.filter(u => u.id !== userId && u.id !== 'admin-1')); // Protect initial admin
+  const updateUser = async (userId: string, updates: UpdateUserData): Promise<{ success: boolean; message: string }> => {
+    if (!isAdmin) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    // Prevent updating the current admin's role or status
+    if (userId === user?.id && (updates.role !== undefined || updates.isActive !== undefined)) {
+      return { success: false, message: 'Cannot modify your own role or status' };
+    }
+
+    setUsers(users.map(u => 
+      u.id === userId ? { ...u, ...updates } : u
+    ));
+    
+    return { success: true, message: 'User updated successfully' };
   };
 
-  const value = {
+  const deleteUser = async (userId: string): Promise<{ success: boolean; message: string }> => {
+    if (!isAdmin) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    // Prevent deleting self or initial admin
+    if (userId === user?.id) {
+      return { success: false, message: 'Cannot delete your own account' };
+    }
+
+    const userToDelete = users.find(u => u.id === userId);
+    if (userToDelete?.role === 'admin') {
+      return { success: false, message: 'Cannot delete admin users' };
+    }
+
+    setUsers(users.filter(u => u.id !== userId));
+    return { success: true, message: 'User deleted successfully' };
+  };
+
+  const toggleUserStatus = async (userId: string): Promise<{ success: boolean; message: string }> => {
+    if (!isAdmin) {
+      return { success: false, message: 'Unauthorized' };
+    }
+
+    // Prevent toggling own status
+    if (userId === user?.id) {
+      return { success: false, message: 'Cannot change your own status' };
+    }
+
+    const userToToggle = users.find(u => u.id === userId);
+    if (!userToToggle) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const updatedUsers = users.map(u => 
+      u.id === userId ? { ...u, isActive: !u.isActive } : u
+    );
+    
+    setUsers(updatedUsers);
+    return { 
+      success: true, 
+      message: `User ${userToToggle.isActive ? 'deactivated' : 'activated'} successfully` 
+    };
+  };
+
+  const value: AuthContextType = {
     user,
     login,
     logout,
     register,
     isLoading,
     isAuthenticated: !!user,
+    isAdmin,
+    getUsers,
+    createUser,
+    updateUser,
+    deleteUser,
+    toggleUserStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

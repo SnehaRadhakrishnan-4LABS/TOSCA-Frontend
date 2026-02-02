@@ -96,14 +96,14 @@ const Header = () => {
                 
                 {/* Admin Panel Button (only for admin users) */}
                 {user.role === 'admin' && (
-                  <button
-                    onClick={handleAdminClick}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <Shield size={18} />
-                    <span>Admin Panel</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <Shield size={18} />
+                  <span>Admin Panel</span>
+                </button>
+              )}
                 
                 {/* Logout Button */}
                 <button
