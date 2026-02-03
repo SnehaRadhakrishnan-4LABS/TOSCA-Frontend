@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { UserRole, User } from '@/types/users';
-import { Plus, Edit2, Trash2, User as UserIcon, Mail, Shield, Building } from 'lucide-react';
+import { Plus, Edit2, Trash2, User as UserIcon, Mail, Shield, Building, Eye, EyeOff } from 'lucide-react';
 
 // Mock data - in production, this will come from backend
 const mockUsers: User[] = [
@@ -14,6 +14,7 @@ const mockUsers: User[] = [
     companyId: 'company-1',
     createdAt: new Date('2024-01-15'),
     isActive: true,
+    password: 'password123', // Added password field
   },
   {
     id: 'user-2',
@@ -23,6 +24,7 @@ const mockUsers: User[] = [
     companyId: 'company-1',
     createdAt: new Date('2024-01-20'),
     isActive: true,
+    password: 'password123', // Added password field
   },
 ];
 
@@ -30,14 +32,35 @@ export default function AdminPanel() {
   const [users, setUsers] = useState(mockUsers);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'developer' as UserRole,
+    confirmPassword: '',
   });
 
   const handleAddUser = () => {
-    if (!formData.name || !formData.email) return;
+    if (!formData.name || !formData.email) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    if (!formData.password) {
+      alert('Please set a password for the user');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
 
     const newUser: User = {
       id: `user-${Date.now()}`,
@@ -48,8 +71,9 @@ export default function AdminPanel() {
     };
 
     setUsers([...users, newUser]);
-    setFormData({ name: '', email: '', role: 'developer' });
+    setFormData({ name: '', email: '', password: '', role: 'developer', confirmPassword: '' });
     setShowAddModal(false);
+    alert('User created successfully!');
   };
 
   const handleEditUser = (user: User) => {
@@ -57,7 +81,9 @@ export default function AdminPanel() {
     setFormData({
       name: user.name,
       email: user.email,
+      password: '', // Don't show existing password for security
       role: user.role,
+      confirmPassword: '',
     });
     setShowAddModal(true);
   };
@@ -65,20 +91,42 @@ export default function AdminPanel() {
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
+    // If password is being changed, validate it
+    if (formData.password) {
+      if (formData.password !== formData.confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      if (formData.password.length < 6) {
+        alert('Password must be at least 6 characters long');
+        return;
+      }
+    }
+
+    const updatedUser = {
+      ...editingUser,
+      name: formData.name,
+      email: formData.email,
+      role: formData.role,
+      // Only update password if it was changed
+      ...(formData.password && { password: formData.password }),
+    };
+
     setUsers(users.map(u => 
-      u.id === editingUser.id 
-        ? { ...u, ...formData }
-        : u
+      u.id === editingUser.id ? updatedUser : u
     ));
     
     setEditingUser(null);
-    setFormData({ name: '', email: '', role: 'developer' });
+    setFormData({ name: '', email: '', password: '', role: 'developer', confirmPassword: '' });
     setShowAddModal(false);
+    alert('User updated successfully!');
   };
 
   const handleDeleteUser = (userId: string) => {
     if (confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(u => u.id !== userId));
+      alert('User deleted successfully!');
     }
   };
 
@@ -88,6 +136,26 @@ export default function AdminPanel() {
         ? { ...u, isActive: !u.isActive }
         : u
     ));
+    
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      alert(`User ${user.isActive ? 'deactivated' : 'activated'} successfully!`);
+    }
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData({...formData, password, confirmPassword: password});
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', email: '', password: '', role: 'developer', confirmPassword: '' });
+    setEditingUser(null);
+    setShowPassword(false);
   };
 
   return (
@@ -99,14 +167,14 @@ export default function AdminPanel() {
               User Management
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Manage users, roles, and permissions for your company
+              Manage users, roles, passwords, and permissions for your company
             </p>
           </div>
           
           <button
             onClick={() => {
               setEditingUser(null);
-              setFormData({ name: '', email: '', role: 'developer' });
+              resetForm();
               setShowAddModal(true);
             }}
             className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors hover-glow"
@@ -263,7 +331,7 @@ export default function AdminPanel() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Full Name
+                    Full Name *
                   </label>
                   <input
                     type="text"
@@ -271,12 +339,13 @@ export default function AdminPanel() {
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="Enter full name"
+                    required
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email
+                    Email *
                   </label>
                   <input
                     type="email"
@@ -284,12 +353,13 @@ export default function AdminPanel() {
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     className="w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="user@company.com"
+                    required
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Role
+                    Role *
                   </label>
                   <select
                     value={formData.role}
@@ -298,13 +368,83 @@ export default function AdminPanel() {
                   >
                     <option value="developer">Developer</option>
                     <option value="tester">Tester</option>
+                    <option value="organization">Organization</option>
                   </select>
+                </div>
+
+                {/* Password Fields */}
+                <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Password {editingUser ? '(Leave blank to keep current)' : '*'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateRandomPassword}
+                      className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Generate Random
+                    </button>
+                  </div>
+                  
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      placeholder={editingUser ? "Enter new password (optional)" : "Enter password"}
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Confirm Password {!editingUser && '*'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                        className="w-full px-4 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="Confirm password"
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <p>Password requirements:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-1">
+                      <li>Minimum 6 characters</li>
+                      <li>Passwords must match</li>
+                      <li>For security, store passwords securely in production</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               
               <div className="flex justify-end space-x-3 mt-6">
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetForm();
+                  }}
                   className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   Cancel
@@ -357,3 +497,5 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+

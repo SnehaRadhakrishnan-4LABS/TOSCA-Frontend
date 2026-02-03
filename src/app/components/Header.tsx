@@ -127,7 +127,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bell, Search, User, LogOut, Shield, Home } from 'lucide-react';
+import { Bell, Search, User, LogOut, Shield, Home, Settings } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useRouter } from 'next/navigation';
 
@@ -142,12 +142,18 @@ const Header = () => {
   };
 
   const handleAdminClick = () => {
-    router.push('/admin');
-    setShowUserMenu(false);
-  };
+  // ALWAYS go to admin login, even for admin users
+  router.push('/admin/login?redirect=/admin/dashboard');
+  setShowUserMenu(false);
+};
 
   const handleNavigation = (path: string) => {
     router.push(path);
+    setShowUserMenu(false);
+  };
+
+  const handleSettings = () => {
+    router.push('/settings');
     setShowUserMenu(false);
   };
 
@@ -180,7 +186,7 @@ const Header = () => {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-3 p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                 <User size={20} className="text-white" />
               </div>
               <div className="text-left hidden md:block">
@@ -194,50 +200,64 @@ const Header = () => {
             </button>
 
             {showUserMenu && user && (
-              <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden backdrop-blur-lg bg-white/95 dark:bg-gray-900/95">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-800/80">
+              <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden backdrop-blur-lg bg-white/95 dark:bg-gray-900/95">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-white/90 to-gray-50/90 dark:from-gray-800/90 dark:to-gray-900/90">
                   <p className="font-medium text-gray-800 dark:text-white">{user.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</p>
                   <span className={`
-                    inline-block mt-2 px-2 py-1 text-xs rounded-full
+                    inline-block mt-2 px-2 py-1 text-xs rounded-full font-medium
                     ${user.role === 'admin' 
-                      ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400' 
+                      ? 'bg-gradient-to-r from-purple-500/20 to-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800' 
                       : user.role === 'developer'
-                      ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
-                      : 'bg-green-500/20 text-green-600 dark:text-green-400'
+                      ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                      : user.role === 'tester'
+                      ? 'bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                      : 'bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800'
                     }
                   `}>
-                    {user.role}
+                    {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                   </span>
                 </div>
                 
                 {/* Dashboard Button */}
                 <button
                   onClick={() => handleNavigation('/dashboard')}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 bg-white/80 dark:bg-gray-800/80 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 bg-white/80 dark:bg-gray-800/80 transition-colors group"
                 >
-                  <Home size={18} />
-                  <span>Dashboard</span>
+                  <Home size={18} className="text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400" />
+                  <span className="group-hover:text-blue-600 dark:group-hover:text-blue-300">Dashboard</span>
                 </button>
                 
-                {/* Admin Panel Button (only for admin users) */}
-                {user.role === 'admin' && (
-                  <button
-                    onClick={handleAdminClick}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 bg-white/80 dark:bg-gray-800/80 transition-colors"
-                  >
-                    <Shield size={18} />
-                    <span>Admin Panel</span>
-                  </button>
-                )}
+             
+                
+                {/* Admin Panel Button (visible to all users) */}
+                <button
+                  onClick={handleAdminClick}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 bg-white/80 dark:bg-gray-800/80 transition-colors group border-t border-gray-200 dark:border-gray-800"
+                >
+                  <Shield size={18} className={`
+                    ${user.role === 'admin' 
+                      ? 'text-purple-500 group-hover:text-purple-600 dark:group-hover:text-purple-400' 
+                      : 'text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                    }
+                  `} />
+                  <span className={`
+                    ${user.role === 'admin' 
+                      ? 'text-purple-600 group-hover:text-purple-700 dark:text-purple-400 dark:group-hover:text-purple-300' 
+                      : 'group-hover:text-gray-800 dark:group-hover:text-white'
+                    }
+                  `}>
+                    {user.role === 'admin' ? 'Admin Panel' : 'Admin Access'}
+                  </span>
+                </button>
                 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 bg-white/80 dark:bg-gray-800/80 transition-colors"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 bg-white/80 dark:bg-gray-800/80 transition-colors group border-t border-gray-200 dark:border-gray-800"
                 >
-                  <LogOut size={18} />
-                  <span>Sign Out</span>
+                  <LogOut size={18} className="group-hover:text-red-700 dark:group-hover:text-red-300" />
+                  <span className="group-hover:text-red-700 dark:group-hover:text-red-300 font-medium">Sign Out</span>
                 </button>
               </div>
             )}
