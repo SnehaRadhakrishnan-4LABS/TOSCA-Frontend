@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { 
-  Search, Plus, Edit2, Trash2, UserCheck,Shield, UserX, 
+  Search, Plus, Edit2, Trash2, UserCheck,Shield, UserX, Eye,EyeOff,
   Users, Code, TestTube2, Building, Filter, Download 
 } from 'lucide-react';
 import { useAuth } from '../AuthProvider';
@@ -25,6 +25,11 @@ const UserManagement: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
@@ -68,35 +73,71 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const handleAddUser = async () => {
-    const result = await createUser(formData);
-    if (result.success) {
-      setShowAddModal(false);
-      resetForm();
-      alert(result.message);
-    } else {
-      alert(result.message);
-    }
-  };
+ const handleAddUser = async () => {
+  if (!formData.password) {
+    alert('Please set a password for the user');
+    return;
+  }
+  
+  if (formData.password.length < 6) {
+    alert('Password must be at least 6 characters long');
+    return;
+  }
+
+  const result = await createUser(formData);
+  if (result.success) {
+    setShowAddModal(false);
+    resetForm();
+    alert(result.message);
+  } else {
+    alert(result.message);
+  }
+};
+
+  // const handleEditUser = async () => {
+  //   if (!selectedUser) return;
+    
+  //   const result = await updateUser(selectedUser.id, {
+  //     name: formData.name,
+  //     email: formData.email,
+  //     role: formData.role,
+  //     organization: formData.organization,
+  //   });
+    
+  //   if (result.success) {
+  //     setShowEditModal(false);
+  //     resetForm();
+  //     alert(result.message);
+  //   } else {
+  //     alert(result.message);
+  //   }
+  // };
 
   const handleEditUser = async () => {
-    if (!selectedUser) return;
-    
-    const result = await updateUser(selectedUser.id, {
-      name: formData.name,
-      email: formData.email,
-      role: formData.role,
-      organization: formData.organization,
-    });
-    
-    if (result.success) {
-      setShowEditModal(false);
-      resetForm();
-      alert(result.message);
-    } else {
-      alert(result.message);
-    }
+  if (!selectedUser) return;
+  
+  const updates: any = {
+    name: formData.name,
+    email: formData.email,
+    role: formData.role,
+    organization: formData.organization,
   };
+  
+  // Only include password if it was provided (user wants to change it)
+  if (formData.password && formData.password.trim() !== '') {
+    updates.password = formData.password;
+  }
+  
+  const result = await updateUser(selectedUser.id, updates);
+  
+  if (result.success) {
+    setShowEditModal(false);
+    resetForm();
+    alert(result.message);
+  } else {
+    alert(result.message);
+  }
+};
 
   const handleDeleteUser = async (userId: string) => {
     if (confirm('Are you sure you want to delete this user?')) {
@@ -122,16 +163,16 @@ const UserManagement: React.FC = () => {
   };
 
   const openEditModal = (user: any) => {
-    setSelectedUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      password: '', // Don't show password
-      role: user.role,
-      organization: user.organization || '',
-    });
-    setShowEditModal(true);
-  };
+  setSelectedUser(user);
+  setFormData({
+    name: user.name,
+    email: user.email,
+    password: '', // Start with empty for new password
+    role: user.role,
+    organization: user.organization || '',
+  });
+  setShowEditModal(true);
+};
 
   return (
     <div className="space-y-6">
@@ -307,10 +348,10 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Add User Modal */}
+            {/* Add User Modal
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="glassmorphism rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Add New User</h3>
             
             <div className="space-y-4">
@@ -322,7 +363,7 @@ const UserManagement: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="John Doe"
                 />
               </div>
@@ -335,7 +376,7 @@ const UserManagement: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="john@example.com"
                 />
               </div>
@@ -348,9 +389,12 @@ const UserManagement: React.FC = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="••••••••"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Password must be at least 6 characters long
+                </p>
               </div>
               
               <div>
@@ -360,7 +404,7 @@ const UserManagement: React.FC = () => {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="developer">Developer</option>
                   <option value="tester">Tester</option>
@@ -377,7 +421,7 @@ const UserManagement: React.FC = () => {
                     type="text"
                     value={formData.organization}
                     onChange={(e) => setFormData({...formData, organization: e.target.value})}
-                    className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     placeholder="Company Name"
                   />
                 </div>
@@ -387,26 +431,26 @@ const UserManagement: React.FC = () => {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddUser}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Add User
               </button>
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* Edit User Modal */}
-      {showEditModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="glassmorphism rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Edit User</h3>
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Add New User</h3>
             
             <div className="space-y-4">
               <div>
@@ -417,7 +461,8 @@ const UserManagement: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="John Doe"
                 />
               </div>
               
@@ -429,8 +474,111 @@ const UserManagement: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  placeholder="john@example.com"
                 />
+              </div>
+              
+              {/* Password Field with Visibility Toggle */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Password *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-32"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <span className="flex items-center">
+                          <EyeOff size={12} className="mr-1" /> Hide
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <Eye size={12} className="mr-1" /> Show
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+                        let password = '';
+                        for (let i = 0; i < 12; i++) {
+                          password += chars.charAt(Math.floor(Math.random() * chars.length));
+                        }
+                        setFormData({...formData, password: password});
+                      }}
+                      className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 px-2 py-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      title="Generate random password"
+                    >
+                      <span className="flex items-center">
+                        <Plus size={12} className="mr-1" /> Generate
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-1 flex items-center justify-between">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Minimum 6 characters
+                  </p>
+                  {formData.password && (
+                    <p className={`text-xs ${formData.password.length < 6 ? 'text-red-500' : 'text-green-500'}`}>
+                      {formData.password.length < 6 ? 'Weak' : 'Strong'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Confirm Password Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Confirm Password *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-24"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? (
+                        <span className="flex items-center">
+                          <EyeOff size={12} className="mr-1" /> Hide
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <Eye size={12} className="mr-1" /> Show
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {confirmPassword && formData.password !== confirmPassword && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Passwords do not match
+                  </p>
+                )}
               </div>
               
               <div>
@@ -440,7 +588,178 @@ const UserManagement: React.FC = () => {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
-                  className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                >
+                  <option value="developer">Developer</option>
+                  <option value="tester">Tester</option>
+                  <option value="organization">Organization</option>
+                </select>
+              </div>
+              
+              {formData.role === 'organization' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Organization Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.organization}
+                    onChange={(e) => setFormData({...formData, organization: e.target.value})}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="Company Name"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddUser}
+                disabled={!formData.password || formData.password.length < 6 || formData.password !== confirmPassword}
+                className={`px-4 py-2 text-white rounded-lg transition-colors ${
+                  !formData.password || formData.password.length < 6 || formData.password !== confirmPassword
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                Add User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    
+          {/* Edit User Modal */}
+      {showEditModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Edit User</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+              
+              {/* Current Password Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={selectedUser.password || "password123"}
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg outline-none pr-24"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      title={showCurrentPassword ? "Hide password" : "Show password"}
+                    >
+                      {showCurrentPassword ? "Hide" : "Show"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedUser.password || "password123");
+                        alert('Password copied to clipboard');
+                      }}
+                      className="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 px-2 py-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+                      title="Copy password to clipboard"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Current user password (read-only)
+                </p>
+              </div>
+              
+              {/* New Password Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  New Password (Optional)
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-24"
+                    placeholder="Enter new password"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      title={showNewPassword ? "Hide password" : "Show password"}
+                    >
+                      {showNewPassword ? "Hide" : "Show"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const randomPassword = Math.random().toString(36).slice(-8) + "!@#";
+                        setFormData({...formData, password: randomPassword});
+                      }}
+                      className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 px-2 py-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      title="Generate random password"
+                    >
+                      Generate
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Leave blank to keep current password
+                  </p>
+                  {formData.password && (
+                    <p className={`text-xs mt-1 ${formData.password.length < 6 ? 'text-red-500' : 'text-green-500'}`}>
+                      Password strength: {formData.password.length < 6 ? 'Weak (min 6 chars)' : 'Good'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Role
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
+                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   disabled={selectedUser.id === currentUser?.id}
                 >
                   <option value="developer">Developer</option>
@@ -459,7 +778,7 @@ const UserManagement: React.FC = () => {
                     type="text"
                     value={formData.organization}
                     onChange={(e) => setFormData({...formData, organization: e.target.value})}
-                    className="w-full px-3 py-2 bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>
               )}
@@ -468,13 +787,13 @@ const UserManagement: React.FC = () => {
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEditUser}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Save Changes
               </button>

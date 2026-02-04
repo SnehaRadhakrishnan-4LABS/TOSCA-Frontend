@@ -14,7 +14,7 @@ const mockUsers: User[] = [
     companyId: 'company-1',
     createdAt: new Date('2024-01-15'),
     isActive: true,
-    password: 'password123', // Added password field
+    password: 'password123',
   },
   {
     id: 'user-2',
@@ -24,10 +24,10 @@ const mockUsers: User[] = [
     companyId: 'company-1',
     createdAt: new Date('2024-01-20'),
     isActive: true,
-    password: 'password123', // Added password field
+    password: 'password123',
   },
+  // Add more demo users if needed
 ];
-
 export default function AdminPanel() {
   const [users, setUsers] = useState(mockUsers);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -322,8 +322,8 @@ export default function AdminPanel() {
 
         {/* Add/Edit User Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="glassmorphism rounded-2xl p-6 w-full max-w-md">
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
                 {editingUser ? 'Edit User' : 'Add New User'}
               </h3>
