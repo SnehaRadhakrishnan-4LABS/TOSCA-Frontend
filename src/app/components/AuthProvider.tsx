@@ -177,9 +177,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Admin functions
-  const getUsers = (): User[] => {
-    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
-  };
+ const getUsers = (): User[] => {
+  // Return all users including their passwords for admin editing
+  return users.map(user => ({
+    ...user,
+    // Ensure password is included
+    password: user.password || ""
+  }));
+};
 
   const createUser = async (userData: CreateUserData): Promise<{ success: boolean; message: string }> => {
     if (!isAdmin) {
